@@ -1,56 +1,88 @@
-This is the official code for the article "Dark-based Optical Sectioning assists Background Removal in Fluorescence Microscopy" in Nature Methods.
-https://www.nature.com/articles/s41592-025-02667-6. If you find our method works, please cite our work~
+# Dark-sectioning Python
 
-Dark sectioning aims at remove the scattering background in fluorescence images based on dark channel priority and dual frequency seperation.
-This code is finished by Ruijie Cao and Prof. Peng Xi in Peking University. We claim an Apache liscence for Dark sectioning.
+Python library and command-line interface for the Dark-sectioning workflow from
+`MATLAB_Code/Dark.m` in the upstream Dark-sectioning project.
 
-If you have any questions, please contact caoruijie@stu.pku.edu.cn or xipeng@pku.edu.cn
+This repository is intentionally Python-only. The original MATLAB application,
+MATLAB scripts, Fiji/ImageJ plugin artifacts, example TIFF stacks, and packaged
+executables are not included here.
 
-Update in 2025.06.12: Someone reflects that in MATLAB 2024 or later, the nearset function is wrong. This is because the "nearest" function changed in 2024 version. We have changed it into "floor" function.
+## Provenance
 
-Update in 2025.04.04：The imagej version of Dark sectioning has been finished! You can download the Dark-0.1.0-SNAPSHOT(5).jar file and put it into the "plugin" file in Fiji, and it's easy to use!
+Dark-sectioning was introduced with the Nature Methods article "Dark-based
+Optical Sectioning assists Background Removal in Fluorescence Microscopy":
 
-Update in 2025.05.15：We make the guide video in figshare to guide the use of Fiji and Exe users: https://figshare.com/articles/dataset/Dark-sectioning/24607614
+<https://www.nature.com/articles/s41592-025-02667-6>
 
-Update in 2025.05.15：We upload the simplified function of Dark sectioning for intergrate into your own algorithm!
+The upstream README names Ruijie Cao and Prof. Peng Xi at Peking University as
+the original authors and states that the project uses an Apache license for
+Dark-sectioning. See `NOTICE.md` for the preserved provenance notes.
 
-Update in 2025.10.12：We correct the two bugs in the Fiji plugin, the new version can deal with rectangle-shaped image with high dynamic range rendering!
+This Python port targets only the behavior of upstream `MATLAB_Code/Dark.m`.
+It does not implement compatibility modes for `MATLAB_Simplified_Fun`, the
+MATLAB App, or the Fiji/ImageJ plugin.
 
-## Python library and CLI port
-
-This repository now includes a Python port intended for research batch workflows.
-The Python implementation targets `MATLAB_Code/Dark.m` only. It does not try to
-match `MATLAB_Simplified_Fun`, the MATLAB App, or the Fiji/ImageJ plugin.
-
-Install locally:
+## Install
 
 ```bash
 python -m pip install -e ".[test]"
 ```
 
-Run the CLI:
+## CLI Usage
 
 ```bash
-dark-section MATLAB_Code/input/Mousekidney_561nm_1.49NA_65nm.tif --output /tmp/dark_python.tif
+dark-section input.tif --output output_dark.tif
 ```
 
-Use the API:
+If `--output` is omitted, the CLI writes `<input_stem>_Dark.tif`.
+
+## Python API
 
 ```python
 from dark_sectioning import dark_section, read_tiff_stack, write_tiff_stack
 
-stack = read_tiff_stack("MATLAB_Code/input/Mousekidney_561nm_1.49NA_65nm.tif")
+stack = read_tiff_stack("input.tif")
 result = dark_section(stack)
-write_tiff_stack("/tmp/dark_python.tif", result)
+write_tiff_stack("output_dark.tif", result)
 ```
 
-The default Python constants are the constants hard-coded in `MATLAB_Code/Dark.m`:
-`background=1`, `thres=70`, `pad_size=15`, `maxtime=2`, `NA=1.49`,
-`emwavelength=610`, `pixelsize=65`, and `factor=2`.
+The default constants match upstream `MATLAB_Code/Dark.m`:
 
-The file `MATLAB_Code/output/Dark.tif` is retained as a historical upstream
-artifact. Current parity testing treats live MATLAB execution of
-`MATLAB_Code/Dark.m` as authoritative; in this checkout, the historical output
-does not exactly match a fresh MATLAB Engine run of the current script.
+- `background=1`
+- `thres=70`
+- `pad_size=15`
+- `maxtime=2`
+- `NA=1.49`
+- `emwavelength=610`
+- `pixelsize=65`
+- `factor=2`
 
-See `NOTICE.md` for provenance and copyright notes.
+## Tests
+
+Run the default Python test suite:
+
+```bash
+python -m pytest -q
+```
+
+MATLAB Engine parity tests are optional. To run them, keep a separate checkout
+of the upstream MATLAB repository and point the test suite at it:
+
+```bash
+export DARK_SECTIONING_MATLAB_ROOT=/path/to/upstream/Dark-sectioning
+python -m pytest tests/test_matlab_engine_parity.py -q
+```
+
+The local development environment used for this port verified a full CLI output
+against a live MATLAB Engine execution of upstream `MATLAB_Code/Dark.m` with:
+
+- mean absolute error: `0.0`
+- max absolute error: `0`
+- correlation: `0.9999999999999998`
+
+## Notes
+
+The historical upstream file `MATLAB_Code/output/Dark.tif` was not used as the
+final authority because it did not exactly match a fresh MATLAB Engine run of
+the current upstream `MATLAB_Code/Dark.m`. Live MATLAB execution of that script
+is the compatibility target.

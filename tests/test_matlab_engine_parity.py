@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+import os
 from pathlib import Path
 
 import numpy as np
@@ -20,13 +21,21 @@ from dark_sectioning.io import read_tiff_stack
 
 
 ROOT = Path(__file__).resolve().parents[1]
-INPUT = ROOT / "MATLAB_Code" / "input" / "Mousekidney_561nm_1.49NA_65nm.tif"
+
+
+def _matlab_root() -> Path:
+    return Path(os.environ.get("DARK_SECTIONING_MATLAB_ROOT", ROOT))
 
 
 @pytest.mark.matlab
 def test_first_plane_first_pass_matches_matlab_engine(tmp_path: Path) -> None:
     if shutil.which("conda") is None:
         pytest.skip("conda is required to run the matlab_py36 MATLAB Engine environment")
+
+    matlab_root = _matlab_root()
+    input_path = matlab_root / "MATLAB_Code" / "input" / "Mousekidney_561nm_1.49NA_65nm.tif"
+    if not input_path.exists():
+        pytest.skip("upstream MATLAB checkout is not present")
 
     mat_path = tmp_path / "first_plane.mat"
     script = ROOT / "tests" / "export_matlab_first_plane.py"
@@ -37,7 +46,7 @@ def test_first_plane_first_pass_matches_matlab_engine(tmp_path: Path) -> None:
         "matlab_py36",
         "python",
         str(script),
-        str(ROOT),
+        str(matlab_root),
         str(mat_path),
     ]
     completed = subprocess.run(
@@ -59,7 +68,7 @@ def test_first_plane_first_pass_matches_matlab_engine(tmp_path: Path) -> None:
     matlab_block = int(np.asarray(mat["block_size"]).ravel()[0])
 
     cfg = DarkMConfig()
-    image0 = _normalize_to_255(read_tiff_stack(INPUT))
+    image0 = _normalize_to_255(read_tiff_stack(input_path))
     image0, _, _ = _pad_to_square(image0)
     nx, ny, _ = image0.shape
     image = _pad_planes(image0, nx, ny, cfg.pad_size_divisor, cfg.pad)
