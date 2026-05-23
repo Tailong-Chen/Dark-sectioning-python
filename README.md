@@ -48,4 +48,9 @@ The default Python constants are the constants hard-coded in `MATLAB_Code/Dark.m
 `background=1`, `thres=70`, `pad_size=15`, `maxtime=2`, `NA=1.49`,
 `emwavelength=610`, `pixelsize=65`, and `factor=2`.
 
+The file `MATLAB_Code/output/Dark.tif` is retained as a historical upstream
+artifact. Current parity testing treats live MATLAB execution of
+`MATLAB_Code/Dark.m` as authoritative; in this checkout, the historical output
+does not exactly match a fresh MATLAB Engine run of the current script.
+
 See `NOTICE.md` for provenance and copyright notes.

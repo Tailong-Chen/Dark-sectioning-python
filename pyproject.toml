@@ -37,4 +37,5 @@ testpaths = ["tests"]
 addopts = "-q"
 markers = [
   "slow: bundled full-stack parity tests",
+  "matlab: tests that require MATLAB Engine",
 ]
